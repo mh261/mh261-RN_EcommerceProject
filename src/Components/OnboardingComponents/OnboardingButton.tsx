@@ -63,7 +63,7 @@ const OnboardingButton = ({ flatListIndex, flatListRef, itemLength, x }: onboard
         }
     })
 
-    const navigation = useNavigation <NativeStackNavigationProp<RootStackParams>>();
+    const navigation = useNavigation<NativeStackNavigationProp<RootStackParams>>();
     return (
         <TouchableWithoutFeedback
             onPress={() => {
@@ -71,20 +71,19 @@ const OnboardingButton = ({ flatListIndex, flatListRef, itemLength, x }: onboard
                     flatListRef.current?.scrollToIndex({ index: flatListIndex.value + 1 });
                 }
                 else {
-                    // navigation.replace("TabsStack", { "screen": "Home " })
-                    alert("Click here to start shopping online?")
+                    navigation.replace("TabsStack", { "screen": "Home" })
+                    // alert("Click here to start shopping online?")
                 }
             }}
-            >
-                <Animated.View
-                style = {[sty.container, buttonAnimation, colorAnimation]}>
-                    <Animated.Text style = {[sty.textButton, textAnimation]} > GET STARTED</Animated.Text>
-                    <Animated.Image 
+        >
+            <Animated.View style={[sty.container, buttonAnimation, colorAnimation]}>
+                <Animated.Text style={[sty.textButton, textAnimation]} > GET STARTED</Animated.Text>
+                <Animated.Image
                     source={require("../../../assets/onboarding/nextIcon.png")}
-                    style = {[sty.arrow, arrowAnimation]}
-                    />
-                    </Animated.View>
-                    </TouchableWithoutFeedback>
+                    style={[sty.arrow, arrowAnimation]}
+                />
+            </Animated.View>
+        </TouchableWithoutFeedback>
 
     )
 
@@ -96,17 +95,17 @@ const sty = StyleSheet.create({
     container: {
         backgroundColor: "#c822fc",
         padding: 0,
-        borderRadius: 100, 
-        justifyContent: "center", 
-        alignItems: "center", 
+        borderRadius: 100,
+        justifyContent: "center",
+        alignItems: "center",
         overflow: "hidden"
     },
     arrow: {
         position: "absolute"
-    }, 
-    textButton:{
-        color: "#fff", 
-        fontSize: 20, 
+    },
+    textButton: {
+        color: "#fff",
+        fontSize: 20,
         position: "absolute"
     }
 })

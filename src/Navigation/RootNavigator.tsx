@@ -8,7 +8,7 @@ import { NavigatorScreenParams } from "@react-navigation/native"
 
 export type RootStackParams = {
     OnboardingScreen: undefined
-    TabsStack: undefined
+    TabsStack: NavigatorScreenParams<TabsStackParams>
 }
 
 const RootStack = createNativeStackNavigator<RootStackParams>();
