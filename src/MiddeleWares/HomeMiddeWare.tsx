@@ -15,13 +15,13 @@ interface IFeaturedProps {
     setFeaturedProducts: React.Dispatch<React.SetStateAction<ProductListParams[]>>;
 }
 
-const BASE_URL = "http://192.168.1.10";
+const BASE_URL = "http://192.168.0.99";
 
 
 export const fetchCategories = async ({ setGetCategory }: ICatProps) => {
     try {
         const response = await axios.get(`${BASE_URL}:9000/category/getAllCategories`);
-        console.log("API Response", response.data);
+        // console.log("API Response", response.data);
 
         if (Array.isArray(response.data)) {
             const fixedData = response.data.map(item => ({
@@ -42,7 +42,7 @@ export const fetchCategories = async ({ setGetCategory }: ICatProps) => {
 export const fetchProductsByCatID = async ({ catID, setGetProductsByCatID }: IProdByCatProps) => {
     try {
         const response: FetchProductsParam = await axios.get(`${BASE_URL}:9000/product/getProductByCatID/${catID}`);
-        console.log("API Response", response.data);
+        // console.log("API Response", response.data);
 
         if (Array.isArray(response.data)) {
             const fixedData = response.data.map(item => ({
@@ -63,7 +63,7 @@ export const fetchProductsByCatID = async ({ catID, setGetProductsByCatID }: IPr
 export const fetchFeaturedProducts = async ({ isFeatured, setFeaturedProducts }: IFeaturedProps) => {
     try {
         const response = await axios.get(`${BASE_URL}:9000/product/getFeaturedProducts/${isFeatured}`);
-        console.log("API Response", response.data);
+        // console.log("API Response", response.data);
 
         if (Array.isArray(response.data)) {
             const fixedData = response.data.map(item => ({

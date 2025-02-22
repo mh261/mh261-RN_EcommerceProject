@@ -19,6 +19,6 @@ router.post('/createProduct', images, createProduct);
 router.get('/getProductByCatID/:CatID', getProductByCatID);
 router.get('/getProductByID/:id', getProductByID);
 router.get('/getAllProducts', getAllProducts);
-// router.get('/getFeaturedProducts', getFeaturedProducts);
+router.get('/getFeaturedProducts/:featured', getFeaturedProducts);
 
 export { router as ProductRoute };

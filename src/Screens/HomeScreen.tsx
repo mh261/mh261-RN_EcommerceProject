@@ -60,20 +60,16 @@ const HomeScreen = ({ navigation, route }: TabsStackScreenProps<"Home">) => {
     }, [activeCat])
   );
 
-
-
-  return (
-    <SafeAreaView style={{ paddingTop: Platform.OS === 'android' ? 40 : 0, flex: 1, backgroundColor: 'violet' }}>
-      <HeadersComponent gotoCartScreen={gotoCartScreen} />
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={{ backgroundColor: '#efefef', flexDirection: 'row', padding: 10, marginVertical: 10 }}
-      >
-        <ImageSlider images={sliderImage} />
-      </ScrollView>
-      <View style={{ backgroundColor: "yellow", flex: 2 }}>
-        <Text>
+  const renderHeader = () => (
+    <>
+      {/* Categories */}
+      <View style={{
+        flex: 2,
+        backgroundColor: "yellow",
+        marginVertical: 0,
+        alignItems: 'center'
+      }}>
+        <Text style={{}}>
           Categories
         </Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}
@@ -86,8 +82,8 @@ const HomeScreen = ({ navigation, route }: TabsStackScreenProps<"Home">) => {
                 key={index}
                 item={{ "name": item.name, "images": item.images, _id: item._id }}
                 catStyleProps={{
-                  "height": 50,
-                  "width": 55,
+                  "height": 40,
+                  "width": 45,
                   "radius": 20,
                   "resizeMode": "contain"
                   // imageBgHt: 150,
@@ -100,11 +96,14 @@ const HomeScreen = ({ navigation, route }: TabsStackScreenProps<"Home">) => {
           }
         </ScrollView>
       </View>
+
+      {/* Category products */}
       <View style={{
-        backgroundColor: 'red', flexDirection: "row", justifyContent: 'space-between',
-        marginTop: 10
+        backgroundColor: 'red',
+        flexDirection: "row",
+        justifyContent: 'space-between'
       }}>
-        <Text style={{ fontSize: 15, fontWeight: 'bold', padding: 10 }}>
+        <Text style={{ fontSize: 12, fontWeight: 'bold', padding: 10 }}>
           Products from Selected Category
         </Text>
         <Pressable>
@@ -114,8 +113,14 @@ const HomeScreen = ({ navigation, route }: TabsStackScreenProps<"Home">) => {
         </Pressable>
       </View>
       <View style={{
-        backgroundColor: '#fff ', borderWidth: 7, borderColor: 'green', flexDirection: 'row',
-        justifyContent: 'space-between', alignItems: "center", flexWrap: 'wrap',
+        flex: 4,
+        backgroundColor: '#fff ',
+        borderWidth: 7,
+        borderColor: 'green',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: "center",
+        flexWrap: 'wrap',
       }}
       >
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -142,16 +147,18 @@ const HomeScreen = ({ navigation, route }: TabsStackScreenProps<"Home">) => {
             )}
         </ScrollView>
       </View>
-      <View style={{ flexDirection: "row", justifyContent: "center", marginVertical: 10 }}>
+
+      {/* Featured choose */}
+      <View style={{ flex: 1, flexDirection: "row", justifyContent: "center", marginVertical: 10, paddingHorizontal: 5 }}>
         <TouchableOpacity
           onPress={() => setIsFeatured(true)}
           style={{
             backgroundColor: isFeatured ? "#007bff" : "#ccc",
             padding: 10,
-            marginRight: 10,
+            marginHorizontal: 5,
             borderRadius: 5
           }}>
-          <Text style={{ color: "#fff" }}>Sản phẩm nổi bật (True)</Text>
+          <Text style={{ color: "#fff", fontSize: 12 }}>Sản phẩm nổi bật (True)</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -161,16 +168,29 @@ const HomeScreen = ({ navigation, route }: TabsStackScreenProps<"Home">) => {
             padding: 10,
             borderRadius: 5
           }}>
-          <Text style={{ color: "#fff" }}>Sản phẩm thường (False)</Text>
+          <Text style={{ color: "#fff", fontSize: 12 }}>Sản phẩm thường (False)</Text>
         </TouchableOpacity>
       </View>
+    </>
+  );
 
-      {/* Danh sách sản phẩm */}
+  return (
+    <SafeAreaView style={{ flex: 1, paddingTop: Platform.OS === 'android' ? 20 : 0, backgroundColor: 'violet' }}>
+      <HeadersComponent gotoCartScreen={gotoCartScreen} />
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={{ backgroundColor: '#efefef', flexDirection: 'row', padding: 10, marginVertical: 10 }}
+      >
+        <ImageSlider images={sliderImage} />
+      </ScrollView>
       <FlatList
         data={featuredProducts}
         keyExtractor={(item: { _id: any; }) => item._id}
+        ListHeaderComponent={renderHeader}
         renderItem={({ item }) => (
           <View style={{
+            flex: 4,
             flexDirection: "row",
             padding: 10,
             borderBottomWidth: 1,
@@ -187,7 +207,6 @@ const HomeScreen = ({ navigation, route }: TabsStackScreenProps<"Home">) => {
           </View>
         )}
       />
-
     </SafeAreaView>
   );
 };
