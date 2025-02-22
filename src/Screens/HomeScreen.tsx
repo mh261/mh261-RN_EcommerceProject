@@ -1,4 +1,4 @@
-import { View, Text, Platform, ScrollView, Pressable, Image } from "react-native";
+import { View, Text, Platform, ScrollView, Pressable, Image, TouchableOpacity, FlatList } from "react-native";
 import React, { useCallback, useEffect, useState } from "react";
 import { TabsStackScreenProps } from "../Navigation/TabsNavigation";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -6,7 +6,7 @@ import HeadersComponent from "../Components/HeaderComponents/HeaderComponent";
 import ImageSlider from "../Components/HomeScreenComponents/ImageSlider"
 import { ProductListParams } from '../TypesCheck/HomeProps'
 import { CategoryCard } from "../Components/HomeScreenComponents/CategoryCard";
-import { fetchCategories } from "../MiddeleWares/HomeMiddeWare";
+import { fetchCategories, fetchFeaturedProducts } from "../MiddeleWares/HomeMiddeWare";
 import { useFocusEffect } from "@react-navigation/native";
 import { fetchProductsByCatID } from "../MiddeleWares/HomeMiddeWare";
 import { Alert } from "react-native";
@@ -32,6 +32,15 @@ const HomeScreen = ({ navigation, route }: TabsStackScreenProps<"Home">) => {
   const [getProductsByCatID, setGetProductsByCatID] = useState<ProductListParams[]>([]);
   const [activeCat, setActiveCat] = useState<string>("")
 
+  const [isFeatured, setIsFeatured] = useState<boolean | null>(null);
+  const [featuredProducts, setFeaturedProducts] = useState<ProductListParams[]>([]);
+
+
+  useEffect(() => {
+    if (isFeatured !== null) {
+      fetchFeaturedProducts({ setFeaturedProducts, isFeatured });
+    }
+  }, [isFeatured]);
 
   useEffect(() => {
     fetchCategories({ setGetCategory });
@@ -124,7 +133,7 @@ const HomeScreen = ({ navigation, route }: TabsStackScreenProps<"Home">) => {
                   }}
                   catProps={{
                     "onPress": () => Alert.alert(item.name),
-                   "imageBg": item.images.length > 0 ? item.images[0] : ""
+                    "imageBg": item.images.length > 0 ? item.images[0] : ""
                   }}
                 />
               ))
@@ -132,10 +141,54 @@ const HomeScreen = ({ navigation, route }: TabsStackScreenProps<"Home">) => {
               <Text style={{ padding: 10 }}> No products found </Text>
             )}
         </ScrollView>
-
       </View>
+      <View style={{ flexDirection: "row", justifyContent: "center", marginVertical: 10 }}>
+        <TouchableOpacity
+          onPress={() => setIsFeatured(true)}
+          style={{
+            backgroundColor: isFeatured ? "#007bff" : "#ccc",
+            padding: 10,
+            marginRight: 10,
+            borderRadius: 5
+          }}>
+          <Text style={{ color: "#fff" }}>Sản phẩm nổi bật (True)</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => setIsFeatured(false)}
+          style={{
+            backgroundColor: !isFeatured ? "#007bff" : "#ccc",
+            padding: 10,
+            borderRadius: 5
+          }}>
+          <Text style={{ color: "#fff" }}>Sản phẩm thường (False)</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Danh sách sản phẩm */}
+      <FlatList
+        data={featuredProducts}
+        keyExtractor={(item: { _id: any; }) => item._id}
+        renderItem={({ item }) => (
+          <View style={{
+            flexDirection: "row",
+            padding: 10,
+            borderBottomWidth: 1,
+            borderColor: "#ddd"
+          }}>
+            <Image
+              source={{ uri: item.images[0] }}
+              style={{ width: 80, height: 80, marginRight: 10, borderRadius: 5 }}
+            />
+            <View>
+              <Text style={{ fontSize: 18, fontWeight: "bold" }}>{item.name}</Text>
+              <Text style={{ color: "#888" }}>Giá: {item.price} VND</Text>
+            </View>
+          </View>
+        )}
+      />
+
     </SafeAreaView>
   );
 };
-
 export default HomeScreen;

@@ -10,7 +10,12 @@ interface IProdByCatProps {
     setGetProductsByCatID: React.Dispatch<React.SetStateAction<ProductListParams[]>>
 }
 
-const BASE_URL = "http://192.168.1.10"; 
+interface IFeaturedProps {
+    isFeatured: boolean;
+    setFeaturedProducts: React.Dispatch<React.SetStateAction<ProductListParams[]>>;
+}
+
+const BASE_URL = "http://192.168.1.10";
 
 
 export const fetchCategories = async ({ setGetCategory }: ICatProps) => {
@@ -52,5 +57,26 @@ export const fetchProductsByCatID = async ({ catID, setGetProductsByCatID }: IPr
     } catch (error) {
         console.log("Axios get error", error);
         setGetProductsByCatID([]);
+    }
+};
+
+export const fetchFeaturedProducts = async ({ isFeatured, setFeaturedProducts }: IFeaturedProps) => {
+    try {
+        const response = await axios.get(`${BASE_URL}:9000/product/getFeaturedProducts/${isFeatured}`);
+        console.log("API Response", response.data);
+
+        if (Array.isArray(response.data)) {
+            const fixedData = response.data.map(item => ({
+                ...item,
+                images: item.images.map((img: string) => img.replace("http://localhost", BASE_URL)),
+            }));
+            setFeaturedProducts(fixedData);
+        } else {
+            console.warn("fetchFeaturedProducts: Dữ liệu API không phải là mảng", response.data);
+            setFeaturedProducts([]);
+        }
+    } catch (error) {
+        console.error("Error fetching featured products:", error);
+        setFeaturedProducts([]);
     }
 };
