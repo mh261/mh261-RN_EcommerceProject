@@ -6,13 +6,15 @@ import HeadersComponent from "../Components/HeaderComponents/HeaderComponent";
 import ImageSlider from "../Components/HomeScreenComponents/ImageSlider"
 import { ProductListParams } from '../TypesCheck/HomeProps'
 import { CategoryCard } from "../Components/HomeScreenComponents/CategoryCard";
-import { fetchCategories, fetchFeaturedProducts } from "../MiddeleWares/HomeMiddeWare";
+import { fetchCategories, fetchFeaturedProducts, fetchTrendingProducts } from "../MiddeleWares/HomeMiddeWare";
 import { useFocusEffect } from "@react-navigation/native";
 import { fetchProductsByCatID } from "../MiddeleWares/HomeMiddeWare";
 import { Alert } from "react-native";
-
+import { ProductCard } from "../Components/HomeScreenComponents/ProductCard";
 
 const HomeScreen = ({ navigation, route }: TabsStackScreenProps<"Home">) => {
+  const productWidth = 150; // You can adjust this value as needed
+
   const gotoCartScreen = () => {
     navigation.navigate("Cart");
   };
@@ -34,7 +36,12 @@ const HomeScreen = ({ navigation, route }: TabsStackScreenProps<"Home">) => {
 
   const [isFeatured, setIsFeatured] = useState<boolean | null>(null);
   const [featuredProducts, setFeaturedProducts] = useState<ProductListParams[]>([]);
+  const [trendingProducts, setTrendingProducts] = useState<ProductListParams[]>([])
 
+  useEffect(() => {
+    fetchCategories({ setGetCategory });
+    fetchTrendingProducts({ setTrendingProducts });
+  }, []);
 
   useEffect(() => {
     if (isFeatured !== null) {
@@ -62,6 +69,16 @@ const HomeScreen = ({ navigation, route }: TabsStackScreenProps<"Home">) => {
 
   const renderHeader = () => (
     <>
+      {/* Trending Deals Section */}
+      <View style={{
+        backgroundColor: "purple", flexDirection: "row", justifyContent: "space-between",
+        marginTop: 10
+      }}>
+        <Text style={{ color: "yellow", fontSize: 14, fontWeight: "bold", padding: 10 }}>
+          Trending Deals of the Week
+        </Text>
+      </View>
+
       {/* Categories */}
       <View style={{
         flex: 2,
@@ -86,7 +103,6 @@ const HomeScreen = ({ navigation, route }: TabsStackScreenProps<"Home">) => {
                   "width": 45,
                   "radius": 20,
                   "resizeMode": "contain"
-                  // imageBgHt: 150,
                 }}
                 catProps={{
                   "activeCat": activeCat, "onPress": () => setActiveCat(item._id)
@@ -112,17 +128,11 @@ const HomeScreen = ({ navigation, route }: TabsStackScreenProps<"Home">) => {
           </Text>
         </Pressable>
       </View>
+
       <View style={{
-        flex: 4,
-        backgroundColor: '#fff ',
-        borderWidth: 7,
-        borderColor: 'green',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: "center",
-        flexWrap: 'wrap',
-      }}
-      >
+        backgroundColor: "#fff", borderWidth: 7, borderColor: "green", flexDirection: "row",
+        justifyContent: "space-between", alignItems: "center", flexWrap: "wrap"
+      }}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {
             getProductsByCatID?.length > 0 ? (
@@ -158,21 +168,43 @@ const HomeScreen = ({ navigation, route }: TabsStackScreenProps<"Home">) => {
             marginHorizontal: 5,
             borderRadius: 5
           }}>
-          <Text style={{ color: "#fff", fontSize: 12 }}>Sản phẩm nổi bật (True)</Text>
+          <Text style={{ color: "#fff", fontSize: 12 }}>Sản phẩm nổi bật </Text>
         </TouchableOpacity>
+      </View>
 
-        <TouchableOpacity
-          onPress={() => setIsFeatured(false)}
-          style={{
-            backgroundColor: !isFeatured ? "#007bff" : "#ccc",
-            padding: 10,
-            borderRadius: 5
-          }}>
-          <Text style={{ color: "#fff", fontSize: 12 }}>Sản phẩm thường (False)</Text>
-        </TouchableOpacity>
+      {/* Trending Products */}
+      <View style={{ padding: 10 }}>
+        <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10 }}>Trending Products</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          {trendingProducts.map((item, index) => (
+            <ProductCard
+              item={{
+                _id: item?._id || index.toString(),
+                name: item?.name || "No Name",
+                images: item?.images || [""],
+                price: item?.price || 0,
+                oldPrice: item?.oldPrice || item?.price || 0,
+                description: item?.description || "No description available",
+                quantity: item?.quantity ?? 1,
+                inStock: item?.inStock ?? true,
+                isFeatured: Boolean(item?.isFeatured),
+                category: item?.category?.toString() || "Uncategorized"
+              }}
+              key={index}
+              pStyleProps={{ "resizeMode": "contain", "width": productWidth, height: 90, "marginBottom": 5 }}
+              productProps={{
+                "imageBg": item.images.length > 0 ? item.images[0] : "",
+                onPress:()=> { 
+                  navigation.navigate("productDetails", item)
+                }
+              }}
+            />
+          ))}
+        </ScrollView>
       </View>
     </>
   );
+
 
   return (
     <SafeAreaView style={{ flex: 1, paddingTop: Platform.OS === 'android' ? 20 : 0, backgroundColor: 'violet' }}>
@@ -208,6 +240,7 @@ const HomeScreen = ({ navigation, route }: TabsStackScreenProps<"Home">) => {
         )}
       />
     </SafeAreaView>
+    
   );
 };
 export default HomeScreen;

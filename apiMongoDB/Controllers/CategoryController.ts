@@ -3,10 +3,11 @@ import { CATEGORIES } from '../Models/CateogryModel';
 import { CategoryObj } from '../dto/Categories';
 import path from 'path';
 
+
 export const createCategory = async (req: Request, res: Response) => {
     const { name } = <CategoryObj>req.body;
     const files = req.files as Express.Multer.File[];
-    const path = "http:// 10.106.30.140:9000/assets/";
+    const path = "http://localhost:9000/assets/";
     const images = files.map((file: Express.Multer.File) => path + file.filename);
 
     const categories = new CATEGORIES({

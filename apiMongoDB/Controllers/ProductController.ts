@@ -53,6 +53,15 @@ export const getAllProducts = async (req: Request, res: Response) => {
     }
 };
 
+export const deleteProduct = async (req: Request, res: Response) => {
+    try {
+        await PRODUCTS.findByIdAndDelete(req.params.id);
+        res.status(200).json("Product removed successfully!!!");
+    } catch (error) {
+        res.status(500).json(`Porudct delete failed ${error} :-(`);
+    }
+};
+
 export const getFeaturedProducts = async (req: Request, res: Response) => {
     try {
         const result = await PRODUCTS.find({ isFeatured: true });
@@ -61,3 +70,12 @@ export const getFeaturedProducts = async (req: Request, res: Response) => {
         res.status(500).json(`Featured Products fetch failed: ${error} :-( `);
     }
 };
+
+export const getTrendingProducts = async(req: Request, res: Response) => { 
+    try{
+        const result = await PRODUCTS.find({isFeatured: true}).sort({createAt: -1 }).limit(4)
+        res.status(200).json(result)
+    }catch(error){
+        res.status(500).json(`Featured Products fetch failed: ${error} :-( `);
+    }
+}

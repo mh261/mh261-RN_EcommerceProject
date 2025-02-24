@@ -15,7 +15,11 @@ interface IFeaturedProps {
     setFeaturedProducts: React.Dispatch<React.SetStateAction<ProductListParams[]>>;
 }
 
-const BASE_URL = "http://192.168.0.99";
+interface ITrendingProductProps {
+    setTrendingProducts: React.Dispatch<React.SetStateAction<ProductListParams[]>>
+}
+
+const BASE_URL = "http://10.106.31.121";
 
 
 export const fetchCategories = async ({ setGetCategory }: ICatProps) => {
@@ -78,5 +82,27 @@ export const fetchFeaturedProducts = async ({ isFeatured, setFeaturedProducts }:
     } catch (error) {
         console.error("Error fetching featured products:", error);
         setFeaturedProducts([]);
+    }
+};
+
+export const fetchTrendingProducts = async ({ setTrendingProducts }: ITrendingProductProps) => {
+    try {
+        const response: FetchProductsParam = await axios.get(`${BASE_URL}:9000/product/getTrendingProducts`);
+        // console.log("API response: ", response.data)
+
+        if (Array.isArray(response.data)) {
+            const fixedData = response.data.map(item => ({
+                ...item,
+                images: item.images.map((img: string) => img.replace("http://localhost", BASE_URL)),
+            }));
+            setTrendingProducts(fixedData);
+        } else {
+            console.warn("fetchFeaturedProducts: Dữ liệu API không phải là mảng", response.data);
+            setTrendingProducts([]);
+
+        }
+    } catch (error) {
+        console.log("axios get error: ", error);
+        setTrendingProducts([]);
     }
 };
