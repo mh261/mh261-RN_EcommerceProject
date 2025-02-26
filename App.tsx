@@ -1,13 +1,20 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import RootNavigator from "../EcommerceApp/src/Navigation/RootNavigator"
+import RootNavigator from './src/Navigation/RootNavigator';
+import { Provider } from 'react-redux';
+import { store, persistor } from './src/Store';
+import { PersistGate } from 'redux-persist/integration/react';
+
 export default function App() {
   return (
-    <NavigationContainer>
-      <RootNavigator />
-     
-    </NavigationContainer>
+    <Provider store={store}>
+      <PersistGate persistor={persistor}>
+        <NavigationContainer>
+          <RootNavigator />
+        </NavigationContainer>
+      </PersistGate>
+    </Provider>
   );
 }
 

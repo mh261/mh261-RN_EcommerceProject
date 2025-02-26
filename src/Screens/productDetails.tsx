@@ -3,14 +3,58 @@ import React from 'react'
 import { RootStackParams, RootStackScreenProps } from '../Navigation/RootNavigator'
 import { HeadersComponent } from '../Components/HeaderComponents/HeaderComponent'
 import { AntDesign, MaterialCommunityIcons, Ionicons } from '@expo/vector-icons'
+import { useSelector, useDispatch } from 'react-redux'
+import { CartState } from '../TypesCheck/productCartTypes'
+import { addToCart } from '../redux/CartReducer'
+import { ProductListParams } from '../TypesCheck/productCartTypes'
 
 const { width, height } = Dimensions.get("window");
 
 const ProductDetails = ({ navigation, route }: RootStackScreenProps<"productDetails">) => {
     const { _id, images, name, price, oldPrice, inStock, color, size, description, quantity } = route.params;
+    
+    const dispatch = useDispatch();
+    const [addedToCart, setAddedToCart] = React.useState(false);
+    const [message, setMessage] = React.useState("");
+    const [displayMessage, setDisplayMessage] = React.useState<boolean>(false);
+
+    const addItemToCart = (ProductItemObj: ProductListParams) => {
+        if (ProductItemObj.quantity <= 0) {
+            setMessage("Product is out of stock.");
+            setDisplayMessage(true);
+            setTimeout(() => {
+                setDisplayMessage(false);
+            }, 3000);
+        } else {
+            const findItem = cart.find((product: { _id: string }) => product._id === _id);
+            if (findItem) {
+                setMessage("Product is already in cart.");
+                setDisplayMessage(true);
+                setTimeout(() => {
+                    setDisplayMessage(false);
+                }, 3000);
+            } else {
+                setAddedToCart(!addedToCart);
+                dispatch(addToCart(ProductItemObj));
+                setMessage("Product added to cart successfully.");
+                setDisplayMessage(true);
+                setTimeout(() => {
+                    setDisplayMessage(false);
+                }, 3000);
+            }
+        }
+    };
 
     const gotoCartScreen = () => {
-        navigation.navigate("Cart")
+        if(cart.length === 0 ){
+            setMessage("Cart is empty. please add products to cart");
+            setDisplayMessage(true); 
+            setTimeout(() =>{
+                setDisplayMessage(false);
+            }, 3000)
+        } else{
+            navigation.navigate("TabsStack", {screen: "Cart"});
+        }
     }
 
     const goToPreviousScreen = () => {
@@ -22,6 +66,8 @@ const ProductDetails = ({ navigation, route }: RootStackScreenProps<"productDeta
             navigation.navigate("OnboardingScreen");
         }
     }
+    const cart = useSelector((state: CartState) => state.cart.cart);
+    
 
     return (
         <SafeAreaView style={{ paddingTop: Platform.OS === "android" ? 20 : 0, flex: 1, backgroundColor: "white" }}>
@@ -31,7 +77,7 @@ const ProductDetails = ({ navigation, route }: RootStackScreenProps<"productDeta
                     <ImageBackground style={{ width, height, marginTop: 25 }}>
                         <View style={{ padding: 3, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                             <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "#C60C30", flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
-                                <Text style={{ color: "silver", textAlign: "center", fontWeight: "600", fontSize: 12 }}>
+                                <Text style={{ color:    "silver", textAlign: "center", fontWeight: "600", fontSize: 12 }}>
                                     {oldPrice ? ((1 - price / oldPrice) * 100).toFixed(1) : 0}% off
                                 </Text>
                             </View>
@@ -92,14 +138,23 @@ const ProductDetails = ({ navigation, route }: RootStackScreenProps<"productDeta
                         borderRadius: 10,
                         margin: 10
                     }}
-                    onPress={() =>
-                        Alert.alert("Add to Cart", "Product added to cart successfully.")
-                    }
+                    onPress={() => addItemToCart(route.params)}
                 >
-                    <Text style={{ color: "yellow", fontSize: 20, fontWeight: "bold" }}>
-                        Add to Cart
-                    </Text>
+                    {addedToCart ? (
+                        <Text style={{ color: "violet", fontSize: 20, fontWeight: "bold" }}>
+                            Add to Cart
+                        </Text>
+                    ) : (
+                        <Text style={{ color: "orange", fontSize: 20, fontWeight: "bold" }}>
+                            Add to Cart
+                        </Text>
+                    )}
                 </Pressable>
+                {displayMessage && (
+                    <Text style={{ textAlign: 'center', color: message.includes('successfully') ? 'green' : 'red' }}>
+                        {message}
+                    </Text>
+                )}
             </View>
         </SafeAreaView>
     )
