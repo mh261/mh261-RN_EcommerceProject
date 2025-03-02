@@ -1,6 +1,6 @@
 import { View, Text, Pressable, ImageBackground, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import React from 'react';
-import { ICatProps } from '../../TypesCheck/CategoryTypesCheck';
+import { ICatProps } from '../../TypesCheck/CategoryTypes';
 
 export const CategoryCard = ({ item, catProps, catStyleProps }: ICatProps) => {
     let isActive = item._id == catProps.activeCat;

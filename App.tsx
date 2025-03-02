@@ -6,7 +6,12 @@ import { Provider } from 'react-redux';
 import { store, persistor } from './src/Store';
 import { PersistGate } from 'redux-persist/integration/react';
 
+
 export default function App() {
+    // <View style={styles.container}>
+    //   <Text>Open up App.tsx to start working on your app!</Text>
+    //   <StatusBar style="auto" />
+    // </View>
   return (
     <Provider store={store}>
       <PersistGate persistor={persistor}>

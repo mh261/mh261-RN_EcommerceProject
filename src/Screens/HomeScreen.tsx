@@ -1,57 +1,62 @@
-import { View, Text, Platform, ScrollView, Pressable, Image, TouchableOpacity, FlatList } from "react-native";
-import React, { useCallback, useEffect, useState } from "react";
+import { View, Text, Platform, ScrollView, Pressable, StyleSheet, SectionList, TextInput } from "react-native";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { TabsStackScreenProps } from "../Navigation/TabsNavigation";
 import { SafeAreaView } from "react-native-safe-area-context";
-import HeadersComponent from "../Components/HeaderComponents/HeaderComponent";
-import ImageSlider from "../Components/HomeScreenComponents/ImageSlider"
-import { ProductListParams } from '../TypesCheck/HomeProps'
+import { HeadersComponent } from "./../Components/HeaderComponents/HeaderComponent";
+import ImageSlider from "../Components/HomeScreenComponents/ImageSlider";
+import { ProductListParams } from "../TypesCheck/HomeProps";
 import { CategoryCard } from "../Components/HomeScreenComponents/CategoryCard";
-import { fetchCategories, fetchFeaturedProducts, fetchTrendingProducts } from "../MiddeleWares/HomeMiddeWare";
+import { fetchCategories, fetchProductsByCatID, fetchTrendingProducts, fetchSearchedProducts } from "../MiddeleWares/HomeMiddeWare";
 import { useFocusEffect } from "@react-navigation/native";
-import { fetchProductsByCatID } from "../MiddeleWares/HomeMiddeWare";
-import { Alert } from "react-native";
 import { ProductCard } from "../Components/HomeScreenComponents/ProductCard";
+import { useSelector } from "react-redux";
+import { CartState } from "../TypesCheck/productCartTypes";
+import DisplayMessage from "../Components/proudctDetails/DisplayMessage";
 
 const HomeScreen = ({ navigation, route }: TabsStackScreenProps<"Home">) => {
-  const productWidth = 150; // You can adjust this value as needed
+  const sectionListRef = useRef<SectionList>(null);
+  const cart = useSelector((state: CartState) => state.cart.cart);
 
   const gotoCartScreen = () => {
-    navigation.navigate("Cart");
+    if (cart.length === 0) {
+      setMessage("Cart is empty. Please add products to cart.");
+      setDisplayMessage(true);
+      setTimeout(() => { setDisplayMessage(false); }, 3000);
+    } else {
+      navigation.navigate("TabsStack", { screen: "Cart" });
+    }
   };
 
-  const sliderImage = [
-    require('../../assets/product/pr1.jpg'),
-    require('../../assets/product/pr2.jpg'),
-    require('../../assets/product/pr3.jpg'),
-    { uri: 'http://localhost:9000/uploads/icebear.png' }
-  ].map(img => {
-    return typeof img === 'number' ? { uri: Image.resolveAssetSource(img).uri } : img;
-  });
+  const goToPreviousScreen = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate("OnboardingScreen");
+    }
+  };
 
-  const bgImg = { uri: 'http://localhost:9000/uploads/icebear.png' };
+  const sliderImages = [
+    "https://en.wikipedia.org/wiki/Cat#/media/File:Cat_August_2010-4.jpg",
+    "https://en.wikipedia.org/wiki/Dog#/media/File:Chin_posing.jpg",
+    "https://hondamotophattien.com/uploads/scale1.1-posterfb_16.08.jpg",
+  ];
 
   const [getCategory, setGetCategory] = useState<ProductListParams[]>([]);
   const [getProductsByCatID, setGetProductsByCatID] = useState<ProductListParams[]>([]);
-  const [activeCat, setActiveCat] = useState<string>("")
+  const [activeCat, setActiveCat] = useState<string>("");
+  const bgImg = "../pictures/capy.jpg";
+  const [trendingProducts, setTrendingProducts] = useState<ProductListParams[]>([]);
 
-  const [isFeatured, setIsFeatured] = useState<boolean | null>(null);
-  const [featuredProducts, setFeaturedProducts] = useState<ProductListParams[]>([]);
-  const [trendingProducts, setTrendingProducts] = useState<ProductListParams[]>([])
+  // 🔍 Tìm kiếm sản phẩm
+  const [searchText, setSearchText] = useState("");
+  const [searchResults, setSearchResults] = useState<ProductListParams[]>([]);
+  const [allProducts, setAllProducts] = useState<ProductListParams[]>([]);
 
   useEffect(() => {
     fetchCategories({ setGetCategory });
     fetchTrendingProducts({ setTrendingProducts });
   }, []);
 
-  useEffect(() => {
-    if (isFeatured !== null) {
-      fetchFeaturedProducts({ setFeaturedProducts, isFeatured });
-    }
-  }, [isFeatured]);
-
-  useEffect(() => {
-    fetchCategories({ setGetCategory });
-  }, []);
   useEffect(() => {
     if (activeCat) {
       fetchProductsByCatID({ setGetProductsByCatID, catID: activeCat });
@@ -67,180 +72,188 @@ const HomeScreen = ({ navigation, route }: TabsStackScreenProps<"Home">) => {
     }, [activeCat])
   );
 
-  const renderHeader = () => (
-    <>
-      {/* Trending Deals Section */}
-      <View style={{
-        backgroundColor: "purple", flexDirection: "row", justifyContent: "space-between",
-        marginTop: 10
-      }}>
-        <Text style={{ color: "yellow", fontSize: 14, fontWeight: "bold", padding: 10 }}>
-          Trending Deals of the Week
-        </Text>
+  // Gọi API tìm kiếm khi nhập vào thanh tìm kiếm
+  useEffect(() => {
+    if (searchText.trim() !== "") {
+      fetchSearchedProducts({ searchQuery: searchText, setSearchResults });
+    } else {
+      setSearchResults([]);
+    }
+  }, [searchText]);
+
+  const [message, setMessage] = useState("");
+  const [displayMessage, setDisplayMessage] = useState<boolean>(false);
+
+  return (
+    <SafeAreaView style={styles.container}>
+      {displayMessage && <DisplayMessage message={message} visible={() => setDisplayMessage(!displayMessage)} />}
+      <HeadersComponent gotoCartScreen={gotoCartScreen} cartLength={cart.length} goToPrevious={goToPreviousScreen} />
+
+      {/* 🔍 Thanh tìm kiếm */}
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search for products..."
+          placeholderTextColor="#888"
+          value={searchText}
+          onChangeText={setSearchText}
+        />
       </View>
 
-      {/* Categories */}
-      <View style={{
-        flex: 2,
-        backgroundColor: "yellow",
-        marginVertical: 0,
-        alignItems: 'center'
-      }}>
-        <Text style={{}}>
-          Categories
-        </Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 15 }}
-          style={{ marginTop: 4 }}
-        >
-          {
-            getCategory.map((item, index) => (
-              <CategoryCard
-                key={index}
-                item={{ "name": item.name, "images": item.images, _id: item._id }}
-                catStyleProps={{
-                  "height": 40,
-                  "width": 45,
-                  "radius": 20,
-                  "resizeMode": "contain"
+      {/* Hiển thị kết quả tìm kiếm nếu có */}
+      {searchText ? (
+        <View style={styles.productListContainer}>
+          <Text style={styles.categoriesTitle}>Search Results</Text>
+          {searchResults.length > 0 ? (
+            searchResults.map((product, index) => ( // ✅ Đúng: Dùng `product` thay vì `item`
+              <ProductCard
+                key={product._id || index.toString()}
+                item={{
+                  _id: product._id || index.toString(),
+                  name: product.name || "Product Name",
+                  images: product.images || [""],
+                  price: product.price || 0,
+                  oldPrice: product.oldPrice || product.price || 0,
+                  description: product.description || "Product Description",
+                  quantity: product.quantity ?? 1,
+                  inStock: product.inStock ?? false, // ✅ Nếu undefined -> mặc định là false
+                  isFeatured: Boolean(product.isFeatured),
+                  category: product.category?.toString() || "Product Category",
                 }}
-                catProps={{
-                  "activeCat": activeCat, "onPress": () => setActiveCat(item._id)
+                pStyleProps={styles.productCardStyle}
+                productProps={{
+                  imageBg: bgImg,
+                  onPress: () => navigation.navigate("ProductDetails", product), // ✅ Truyền `product`
                 }}
               />
             ))
-          }
-        </ScrollView>
-      </View>
+          ) : (
+            <Text style={styles.noProductsText}>No products found</Text>
+          )}
+        </View>
+      ) : (
+        <ScrollView>
+          {/* Image Slider Section */}
+          <View style={styles.sliderContainer}>
+            <ImageSlider images={sliderImages} />
+          </View>
 
-      {/* Category products */}
-      <View style={{
-        backgroundColor: 'red',
-        flexDirection: "row",
-        justifyContent: 'space-between'
-      }}>
-        <Text style={{ fontSize: 12, fontWeight: 'bold', padding: 10 }}>
-          Products from Selected Category
-        </Text>
-        <Pressable>
-          <Text style={{ fontSize: 10, fontWeight: 'bold', padding: 10 }}>
-            View All
-          </Text>
-        </Pressable>
-      </View>
 
-      <View style={{
-        backgroundColor: "#fff", borderWidth: 7, borderColor: "green", flexDirection: "row",
-        justifyContent: "space-between", alignItems: "center", flexWrap: "wrap"
-      }}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {
-            getProductsByCatID?.length > 0 ? (
-              getProductsByCatID.map((item, index) => (
+          {/* Categories Section */}
+          <View style={styles.categoriesContainer}>
+            <Text style={styles.categoriesTitle}>Categories</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryList}>
+              {getCategory.map((item) => (
                 <CategoryCard
-                  key={index}
-                  item={{ "name": item.name, "images": item.images, "_id": item._id }}
-                  catStyleProps={{
-                    "height": 100,
-                    "width": 100,
-                    "radius": 10,
-                    "resizeMode": "contain"
-                  }}
+                  key={item._id}
+                  item={{ name: item.name, images: item.images, _id: item._id }}
+                  catStyleProps={styles.categoryCardStyle}
                   catProps={{
-                    "onPress": () => Alert.alert(item.name),
-                    "imageBg": item.images.length > 0 ? item.images[0] : ""
+                    activeCat: activeCat,
+                    onPress: () => setActiveCat(item._id),
                   }}
                 />
-              ))
-            ) : (
-              <Text style={{ padding: 10 }}> No products found </Text>
-            )}
-        </ScrollView>
-      </View>
-
-      {/* Featured choose */}
-      <View style={{ flex: 1, flexDirection: "row", justifyContent: "center", marginVertical: 10, paddingHorizontal: 5 }}>
-        <TouchableOpacity
-          onPress={() => setIsFeatured(true)}
-          style={{
-            backgroundColor: isFeatured ? "#007bff" : "#ccc",
-            padding: 10,
-            marginHorizontal: 5,
-            borderRadius: 5
-          }}>
-          <Text style={{ color: "#fff", fontSize: 12 }}>Sản phẩm nổi bật </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Trending Products */}
-      <View style={{ padding: 10 }}>
-        <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10 }}>Trending Products</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {trendingProducts.map((item, index) => (
-            <ProductCard
-              item={{
-                _id: item?._id || index.toString(),
-                name: item?.name || "No Name",
-                images: item?.images || [""],
-                price: item?.price || 0,
-                oldPrice: item?.oldPrice || item?.price || 0,
-                description: item?.description || "No description available",
-                quantity: item?.quantity ?? 1,
-                inStock: item?.inStock ?? true,
-                isFeatured: Boolean(item?.isFeatured),
-                category: item?.category?.toString() || "Uncategorized"
-              }}
-              key={index}
-              pStyleProps={{ "resizeMode": "contain", "width": productWidth, height: 90, "marginBottom": 5 }}
-              productProps={{
-                "imageBg": item.images.length > 0 ? item.images[0] : "",
-                onPress:()=> { 
-                  navigation.navigate("productDetails", item)
-                }
-              }}
-            />
-          ))}
-        </ScrollView>
-      </View>
-    </>
-  );
-
-
-  return (
-    <SafeAreaView style={{ flex: 1, paddingTop: Platform.OS === 'android' ? 20 : 0, backgroundColor: 'violet' }}>
-      <HeadersComponent gotoCartScreen={gotoCartScreen} />
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={{ backgroundColor: '#efefef', flexDirection: 'row', padding: 10, marginVertical: 10 }}
-      >
-        <ImageSlider images={sliderImage} />
-      </ScrollView>
-      <FlatList
-        data={featuredProducts}
-        keyExtractor={(item: { _id: any; }) => item._id}
-        ListHeaderComponent={renderHeader}
-        renderItem={({ item }) => (
-          <View style={{
-            flex: 4,
-            flexDirection: "row",
-            padding: 10,
-            borderBottomWidth: 1,
-            borderColor: "#ddd"
-          }}>
-            <Image
-              source={{ uri: item.images[0] }}
-              style={{ width: 80, height: 80, marginRight: 10, borderRadius: 5 }}
-            />
-            <View>
-              <Text style={{ fontSize: 18, fontWeight: "bold" }}>{item.name}</Text>
-              <Text style={{ color: "#888" }}>Giá: {item.price} VND</Text>
-            </View>
+              ))}
+            </ScrollView>
           </View>
-        )}
-      />
+        </ScrollView>
+      )}
     </SafeAreaView>
-    
   );
 };
+
+// 🎨 Cập nhật CSS
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#f8f9fa",
+    paddingTop: Platform.OS === "android" ? 1 : 0,
+  },
+  categoryCardStyle: {
+    height: 100, // Điều chỉnh chiều cao phù hợp
+    width: 100, // Điều chỉnh chiều rộng phù hợp
+    borderRadius: 12,
+    resizeMode: "contain",
+    marginHorizontal: 5,
+    backgroundColor: "#fff",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  searchContainer: {
+    margin: 10,
+    padding: 10,
+    borderRadius: 10,
+    backgroundColor: "#fff",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  searchInput: {
+    fontSize: 16,
+    color: "#333",
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+  },
+  sliderContainer: {
+    marginVertical: 12,
+  },
+  categoriesContainer: {
+    backgroundColor: "#ffffff",
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    borderRadius: 10,
+    marginHorizontal: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  categoriesTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#374151",
+    marginBottom: 8,
+  },
+  categoryList: {
+    paddingHorizontal: 5,
+  },
+  productListContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    backgroundColor: "#ffffff",
+    paddingVertical: 12,
+    marginHorizontal: 10,
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  noProductsText: {
+    padding: 12,
+    color: "#6b7280",
+    textAlign: "center",
+  },
+  productCardStyle: {
+    width: 250,
+    height: 260,
+    margin: 12,
+    borderRadius: 15,
+    backgroundColor: "#ffffff",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+});
+
 export default HomeScreen;

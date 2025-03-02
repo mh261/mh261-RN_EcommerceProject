@@ -1,163 +1,117 @@
-import { View, Image, Text, Platform, ScrollView, SectionList, Dimensions, Pressable, Alert, SafeAreaView, ImageBackground } from 'react-native'
-import React from 'react'
-import { RootStackParams, RootStackScreenProps } from '../Navigation/RootNavigator'
-import { HeadersComponent } from '../Components/HeaderComponents/HeaderComponent'
-import { AntDesign, MaterialCommunityIcons, Ionicons } from '@expo/vector-icons'
-import { useSelector, useDispatch } from 'react-redux'
-import { CartState } from '../TypesCheck/productCartTypes'
-import { addToCart } from '../redux/CartReducer'
-import { ProductListParams } from '../TypesCheck/productCartTypes'
+import { View, ImageBackground, Text, Platform, ScrollView, Dimensions, Pressable, SafeAreaView } from 'react-native';
+import React, { useState } from 'react';
+import { RootStackScreenProps } from '../Navigation/RootNavigator';
+import { HeadersComponent } from '../Components/HeaderComponents/HeaderComponent';
+import { AntDesign, MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
+import { useSelector, useDispatch } from 'react-redux';
+import { CartState } from '../TypesCheck/productCartTypes';
+import { addToCart } from '../redux/CartReducer';
+import { ProductListParams } from '../TypesCheck/productCartTypes';
+import axios from 'axios';
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 
-const ProductDetails = ({ navigation, route }: RootStackScreenProps<"productDetails">) => {
-    const { _id, images, name, price, oldPrice, inStock, color, size, description, quantity } = route.params;
-    
+const ProductDetails = ({ navigation, route }: RootStackScreenProps<"ProductDetails">) => {
+    const { _id, images, name, price, oldPrice, inStock, color, size, description, quantity } = route.params ;
+
+    const cart = useSelector((state: CartState) => state.cart.cart);
     const dispatch = useDispatch();
-    const [addedToCart, setAddedToCart] = React.useState(false);
-    const [message, setMessage] = React.useState("");
-    const [displayMessage, setDisplayMessage] = React.useState<boolean>(false);
+    const [addedToCart, setAddedToCart] = useState(false);
 
     const addItemToCart = (ProductItemObj: ProductListParams) => {
-        if (ProductItemObj.quantity <= 0) {
-            setMessage("Product is out of stock.");
-            setDisplayMessage(true);
-            setTimeout(() => {
-                setDisplayMessage(false);
-            }, 3000);
-        } else {
-            const findItem = cart.find((product: { _id: string }) => product._id === _id);
-            if (findItem) {
-                setMessage("Product is already in cart.");
-                setDisplayMessage(true);
-                setTimeout(() => {
-                    setDisplayMessage(false);
-                }, 3000);
-            } else {
-                setAddedToCart(!addedToCart);
-                dispatch(addToCart(ProductItemObj));
-                setMessage("Product added to cart successfully.");
-                setDisplayMessage(true);
-                setTimeout(() => {
-                    setDisplayMessage(false);
-                }, 3000);
-            }
+        const findItem = cart.find((product) => product._id === _id);
+        if (!findItem) {
+            setAddedToCart(true);
+            dispatch(addToCart(ProductItemObj));
         }
     };
 
-    const gotoCartScreen = () => {
-        if(cart.length === 0 ){
-            setMessage("Cart is empty. please add products to cart");
-            setDisplayMessage(true); 
-            setTimeout(() =>{
-                setDisplayMessage(false);
-            }, 3000)
-        } else{
-            navigation.navigate("TabsStack", {screen: "Cart"});
-        }
-    }
-
-    const goToPreviousScreen = () => {
-        if (navigation.canGoBack()) {
-            console.log("Chuyển về trang trước.");
-            navigation.goBack();
-        } else {
-            console.log("Không thể quay lại, chuyển về trang Onboarding.");
-            navigation.navigate("OnboardingScreen");
-        }
-    }
-    const cart = useSelector((state: CartState) => state.cart.cart);
-    
-
     return (
-        <SafeAreaView style={{ paddingTop: Platform.OS === "android" ? 20 : 0, flex: 1, backgroundColor: "white" }}>
-            <HeadersComponent gotoCartScreen={gotoCartScreen} goToPrevios={goToPreviousScreen} />
-            <ScrollView style={{ backgroundColor: "pink" }}>
-                <ScrollView showsVerticalScrollIndicator={false}>
-                    <ImageBackground style={{ width, height, marginTop: 25 }}>
-                        <View style={{ padding: 3, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "#C60C30", flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
-                                <Text style={{ color:    "silver", textAlign: "center", fontWeight: "600", fontSize: 12 }}>
-                                    {oldPrice ? ((1 - price / oldPrice) * 100).toFixed(1) : 0}% off
-                                </Text>
-                            </View>
-                            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "#E0E0E0", flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
-                                <MaterialCommunityIcons name="share-variant" size={25} color="green" />
-                            </View>
-                        </View>
-                        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", paddingLeft: 20 }}>
-                            <Image style={{ width: 300, height: 300, resizeMode: "contain" }} source={{ uri: images[0] }} />
-                        </View>
-                        <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "#E0E0E0", flexDirection: "row", justifyContent: "center", alignItems: "center", marginTop: "auto", marginBottom: 1000, marginLeft: 20 }}>
-                            <AntDesign style={{ paddingLeft: 0, paddingTop: 2 }} name="heart" size={25} color="grey" />
+        <SafeAreaView style={{ paddingTop: Platform.OS === 'android' ? 20 : 0, flex: 1, backgroundColor: "#f8f8f8" }}>
+            {/* Header */}
+            <HeadersComponent gotoCartScreen={() => navigation.navigate("TabsStack", { screen: "Cart" })} cartLength={cart.length} goToPrevious={navigation.goBack} />
+
+            <ScrollView>
+                {/* Image Section */}
+                <View style={{ alignItems: "center", marginVertical: 10 }}>
+                    <ImageBackground source={{ uri: images[0] }} style={{ width: width * 0.9, height: 350, borderRadius: 10, overflow: "hidden" }}>
+                        {/* Nút yêu thích */}
+                        <Pressable
+                            style={{
+                                position: "absolute",
+                                top: 10,
+                                right: 10,
+                                backgroundColor: "rgba(255,255,255,0.8)",
+                                padding: 8,
+                                borderRadius: 50,
+                            }}
+                            // onPress={toggleFavorite}
+                        >
+                            {/* <AntDesign name={favorite ? "heart" : "hearto"} size={24} color={favorite ? "red" : "black"} /> */}
+                        </Pressable>
+
+                        {/* Nút chia sẻ */}
+                        <View style={{ position: "absolute", top: 10, right: 50, backgroundColor: "#00000080", padding: 8, borderRadius: 20 }}>
+                            <MaterialCommunityIcons name="share-variant" size={22} color="white" />
                         </View>
                     </ImageBackground>
-                    <View style={{
-                        backgroundColor: "white",
-                        borderColor: "purple",
-                        borderWidth: 8,
-                        width,
-                        position: "absolute",
-                        top: 420,
-                        padding: 10
-                    }}>
-                        <Text style={{ fontSize: 20, fontWeight: "bold" }}>{name}</Text>
-                        <Text style={{ fontSize: 16, color: "green" }}>{description}</Text>
-                        <Text style={{ fontSize: 20, fontWeight: "bold" }}>Price: {price} $</Text>
-                        <Text style={{ fontSize: 16, color: "grey" }}>Old Price: {oldPrice} $</Text>
-                        <Text style={{ fontSize: 16, color: "blue" }}>
-                            {quantity > 0 ? `In Stock - Quantity: ${quantity}` : "Out of Stock"}
-                        </Text>
-                        <Text style={{ fontSize: 16, color: "orange" }}>Color: {color}</Text>
-                        <Text style={{ fontSize: 16, color: "red" }}>Size: {size}</Text>
-                    </View>
+                </View>
 
-                    <View style={{ marginTop: 220, marginHorizontal: 6 }}>
-                        <Text style={{ fontSize: 16, fontWeight: "bold", color: "blue" }}>Delivery</Text>
-                    </View>
+                {/* Product Info */}
+                <View style={{ backgroundColor: "white", borderRadius: 10, padding: 15, marginHorizontal: 15, shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 5, elevation: 3 }}>
+                    <Text style={{ fontSize: 22, fontWeight: "bold" }}>{name}</Text>
+                    <Text style={{ fontSize: 16, color: "gray", marginVertical: 5 }}>{description}</Text>
 
-                    <View style={{ backgroundColor: "white", borderColor: "orange", borderWidth: 8, width, padding: 10 }}>
-                        <Text style={{ fontSize: 14, color: "red" }}>Delivery is Available</Text>
-                        <View style={{ flexDirection: "row", alignItems: "center" }}>
-                            <Ionicons name='location-sharp' size={25} color="green" />
-                            <Text style={{ fontSize: 14, color: "brown", marginLeft: 5 }}>
-                                Delivery to: CAMPUS THANH THAI 7/1 Thanh Thai, Ward 14, District 10, Ho Chi Minh City
+                    <View style={{ flexDirection: "row", alignItems: "center", marginVertical: 5 }}>
+                        <Text style={{ fontSize: 20, fontWeight: "bold", color: "#E63946" }}>${price.toFixed(2)}</Text>
+                        {oldPrice && (
+                            <Text style={{ fontSize: 16, textDecorationLine: "line-through", marginLeft: 10, color: "gray" }}>
+                                ${oldPrice.toFixed(2)}
                             </Text>
-                        </View>
+                        )}
+                        {oldPrice && (
+                            <View style={{ marginLeft: 10, backgroundColor: "#E63946", padding: 5, borderRadius: 5 }}>
+                                <Text style={{ color: "white", fontSize: 14 }}>
+                                    -{((1 - price / oldPrice) * 100).toFixed(1)}%
+                                </Text>
+                            </View>
+                        )}
                     </View>
-                </ScrollView>
+
+                    <Text style={{ fontSize: 16, color: quantity > 0 ? "green" : "red" }}>
+                        {quantity > 0 ? `In Stock - ${quantity} available` : "Out of Stock"}
+                    </Text>
+                </View>
+
+                {/* Delivery Info */}
+                <View style={{ backgroundColor: "white", borderRadius: 10, padding: 15, marginHorizontal: 15, marginTop: 10, shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 5, elevation: 3 }}>
+                    <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 5 }}>Delivery</Text>
+                    <View style={{ flexDirection: "row", alignItems: "center" }}>
+                        <Ionicons name="location-sharp" size={20} color="green" />
+                        <Text style={{ fontSize: 14, color: "black", marginLeft: 5 }}>Delivery to: 7/1 Thanh Thai, District 10, Ho Chi Minh City</Text>
+                    </View>
+                </View>
             </ScrollView>
 
-            <View style={{ backgroundColor: "white", paddingBottom: 0 }}>
+            {/* Add to Cart Button */}
+            <View style={{ backgroundColor: "white", padding: 15 }}>
                 <Pressable
                     style={{
-                        backgroundColor: "green",
+                        backgroundColor: addedToCart ? "#6A0572" : "#2D6A4F",
                         padding: 15,
                         alignItems: "center",
                         justifyContent: "center",
                         borderRadius: 10,
-                        margin: 10
                     }}
                     onPress={() => addItemToCart(route.params)}
                 >
-                    {addedToCart ? (
-                        <Text style={{ color: "violet", fontSize: 20, fontWeight: "bold" }}>
-                            Add to Cart
-                        </Text>
-                    ) : (
-                        <Text style={{ color: "orange", fontSize: 20, fontWeight: "bold" }}>
-                            Add to Cart
-                        </Text>
-                    )}
-                </Pressable>
-                {displayMessage && (
-                    <Text style={{ textAlign: 'center', color: message.includes('successfully') ? 'green' : 'red' }}>
-                        {message}
+                    <Text style={{ color: "white", fontSize: 20, fontWeight: "bold" }}>
+                        {addedToCart ? "Added to Cart" : "Add to Cart"}
                     </Text>
-                )}
+                </Pressable>
             </View>
         </SafeAreaView>
-    )
-}
+    );
+};
 
-export default ProductDetails
+export default ProductDetails;

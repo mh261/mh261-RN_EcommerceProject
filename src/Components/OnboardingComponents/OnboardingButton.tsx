@@ -1,6 +1,6 @@
 import { View, Text, useWindowDimensions, TouchableWithoutFeedback, StyleSheet } from 'react-native'
 import React from 'react'
-import { onboardingButtonParams, OnboardingDotParams } from '../../TypesCheck/OnboardingTypesCheck'
+import { onboardingButtonParams, onboardingDotParams } from '../../TypesCheck/OnboardingTypesCheck'
 import Animated, { interpolateColor, useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated'
 import { useNavigation } from '@react-navigation/native'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
@@ -49,17 +49,15 @@ const OnboardingButton = ({ flatListIndex, flatListRef, itemLength, x }: onboard
     })
 
     const colorAnimation = useAnimatedStyle(() => {
-        const backgroundColor = interpolateColor(
+        const background = interpolateColor(
             x.value,
             [
                 0, SCREEN_WIDTH, 2 * SCREEN_WIDTH
             ],
-
-            ["#c80dfc", "#250dfc", "#251357"]
+            ["#7EC8E3", "#FF69B4", "#8A2BE2"],
         )
-
         return {
-            backgroundColor: backgroundColor
+            backgroundColor: background
         }
     })
 
@@ -90,22 +88,32 @@ const OnboardingButton = ({ flatListIndex, flatListRef, itemLength, x }: onboard
 }
 
 export default OnboardingButton
-
 const sty = StyleSheet.create({
     container: {
-        backgroundColor: "#c822fc",
-        padding: 0,
-        borderRadius: 100,
+        width: 60,
+        height: 60,
+        borderRadius: 30,
         justifyContent: "center",
         alignItems: "center",
-        overflow: "hidden"
+        flexDirection: "row",
+        marginHorizontal: 10,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 5,
+        elevation: 5,
     },
+
     arrow: {
-        position: "absolute"
+        position: "absolute",
+        tintColor: "white", // Đổi màu mũi tên thành trắng
     },
+
     textButton: {
-        color: "#fff",
-        fontSize: 20,
-        position: "absolute"
+        color: "#FFF",
+        fontWeight: "bold",
+        fontSize: 18,
+        position: "absolute",
+        textTransform: "uppercase",
     }
 })

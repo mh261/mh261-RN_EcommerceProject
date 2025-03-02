@@ -9,3 +9,8 @@ export interface ProductParams {
     isFeatured: boolean;
     category: string;
 }
+
+export interface UpdateProduct {
+    name?: string;
+    images?: string;
+}

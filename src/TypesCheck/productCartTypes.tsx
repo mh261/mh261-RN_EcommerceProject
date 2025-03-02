@@ -7,19 +7,21 @@ export interface ProductListParams {
     color?: string;
     size?: string;
     description?: string;
-    quantity: number;
-    inStock?: boolean;
-    isFeatured?: boolean;
-    category?: string;
+    quantity: number
+    inStock?: boolean
+    isFeatured?: boolean
+    category?: string
 }
 
 export interface CartItem {
-    cart: ProductListParams[];
+
+    cart: ProductListParams[]
 }
 
 export interface CartState {
+
     cart: {
-        cart: ProductListParams[];
-        length: number;
+        cart: ProductListParams[]
+        length: number
     }
 }
